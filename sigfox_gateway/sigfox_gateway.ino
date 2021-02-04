@@ -62,7 +62,7 @@ void loop() {
     Serial.println(msg.hour2);
     Serial.println(msg.min2);
 
-    if (numtx == 35 || numtx == 70 || numtx == 105 || numtx == 138) {
+    if (numtx == 1 || numtx == 70 || numtx == 105 || numtx == 138) {
       Downlink(); //We ask for Downlink data just 4 times per day
     }
     else {
