@@ -1,12 +1,11 @@
-#include <SPI.h> //asd
+#include <SPI.h> 
 #include <RH_RF95.h>
-#include <SimpleDHT.h>
 #include <LowPower.h>
 
 RH_RF95 rf95;
 
-uint8_t dev_id = 125; //unique device ID
-uint8_t payload[3];
+uint8_t dev_id = 138; //unique device ID
+uint8_t payload[2];
 bool rx_ok;
 int tx_time = 10000; //TX time periodicity
 
@@ -68,13 +67,9 @@ void loop() {
 }
 
 void preparePayload() {
-  float temp, hum;
-  SimpleDHT11 dht11(5);
-  dht11.read2(&temp, &hum, NULL);
-  Serial.print(temp);
-  uint8_t temperature = temp;
-  uint8_t humidity = hum;
+  float wet = analogRead(A2); //Get analog measurement from leaf sensor (0-2V --> 0-409.2)
+  float wet_percent = map(val, 0, 409.2, 0, 100); //Convert to Percentage
+  uint8_t wetness = wet_percent;
   payload[0] = dev_id;
-  payload[1] = temperature;
-  payload[2] = humidity;
+  payload[1] = wetness;
 }
