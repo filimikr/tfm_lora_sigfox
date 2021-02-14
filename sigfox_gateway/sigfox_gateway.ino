@@ -8,11 +8,10 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t hour1;
   uint8_t min1;
   uint8_t id2;
-  uint8_t temp2;
-
-  uint8_t hum2;
+  uint8_t wet2;
   uint8_t hour2;
   uint8_t min2;
+  uint8_t nada2;
 }
 
 SigfoxMessage; //Sigfox packet 12 BYTES
@@ -52,17 +51,17 @@ void loop() {
     Serial.println(msg.min1);
     delay(1000);
     msg.id2 = Serial1.read();
-    msg.temp2 = Serial1.read();
-    msg.hum2 = Serial1.read();
+    msg.wet2 = Serial1.read();
     msg.hour2 = Serial1.read();
     msg.min2 = Serial1.read();
+    msg.nada2 = Serial1.read();
     Serial.println(msg.id2);
-    Serial.println(msg.temp2);
-    Serial.println(msg.hum2);
+    Serial.println(msg.wet2);
     Serial.println(msg.hour2);
     Serial.println(msg.min2);
+    Serial.println(msg.nada2);
 
-    if (numtx == 1 || numtx == 70 || numtx == 105 || numtx == 138) {
+    if (numtx == 35 || numtx == 70 || numtx == 105 || numtx == 138) {
       Downlink(); //We ask for Downlink data just 4 times per day
     }
     else {

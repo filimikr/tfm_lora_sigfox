@@ -4,8 +4,8 @@
 
 RH_RF95 rf95;
 
-uint8_t dev_id = 138; //unique device ID
-uint8_t payload[2];
+uint8_t dev_id = 132; //unique device ID
+uint8_t payload[3];
 bool rx_ok;
 int tx_time = 10000; //TX time periodicity
 
@@ -57,7 +57,7 @@ void loop() {
     }
   }
 
-  Serial.println("Lets Sleep...");
+ // Serial.println("Lets Sleep...");
   //delay(4 * 60 * 1000); //4mins
   delay(240000);
   /* Activate this when setting the low power idle mode
@@ -68,8 +68,14 @@ void loop() {
 
 void preparePayload() {
   float wet = analogRead(A2); //Get analog measurement from leaf sensor (0-2V --> 0-409.2)
-  float wet_percent = map(val, 0, 409.2, 0, 100); //Convert to Percentage
+  int wet_percent = map(wet, 0, 409.2, 0, 100); //Convert to Percentage
+ /* Serial.println(wet); //debugging to check measurements
+  Serial.print("->");
+  Serial.print(wet_percent);
+  Serial.print("%"); */
+  Serial.println(wet_percent);
   uint8_t wetness = wet_percent;
   payload[0] = dev_id;
   payload[1] = wetness;
+  payload[2] = 0;
 }

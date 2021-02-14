@@ -129,10 +129,10 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
   if (buf[0] == 132) {
     updata[1].dev_id = dev_id;
     updata[1].ulink_payload[0] = buf[0]; //dev ID
-    updata[1].ulink_payload[1] = buf[1]; //temp
-    updata[1].ulink_payload[2] = buf[2]; //humidity
-    updata[1].ulink_payload[3] = hour(); //Hour (timestamp)
-    updata[1].ulink_payload[4] = minute(); //Minutes (timestamp)
+    updata[1].ulink_payload[1] = buf[1]; //leaf wetness
+    updata[1].ulink_payload[4] = 0; //
+    updata[1].ulink_payload[2] = hour(); //Hour (timestamp)
+    updata[1].ulink_payload[3] = minute(); //Minutes (timestamp)
     Serial.println("Storing uplink data! DEV.132");
   }
 }
