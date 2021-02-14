@@ -4,13 +4,29 @@
 
 RH_RF95 rf95;
 
-uint8_t dev_id = 132; //unique device ID
-uint8_t payload[3];
 bool rx_ok;
 int tx_time = 10000; //TX time periodicity
 
+//Leaf sensors Setup
+int leafSupply = 4; //digital port 2 supply
+//declare analogRead ports for each sensor
+int leaf0 = 0; //First leaf will send output to port A0 and so on
+//int leaf1 = 1; //uncomment if additional sensors are added
+//int leaf2 = 2;
+//int leaf3 = 3;
+//int leaf4 = 4;
+//int leaf5 = 5;
+const unsigned int sensors = 1; //number of leaf sensors
+int leafs[sensors] = {leaf0}; //add the analogRead ports in the list, IF MORE SENSORS ARE ADDED, add more like {leaf0, leaf1,...}
+unsigned int leafMeasure[sensors]; //set measurements list length
+//unsigned int finalMeasureToPayload[sensors]; //initialize array to store measurements converted to percentage and 8bit
+
+uint8_t payload[sensors+1]; //set payload list length (The length will be the number of sensors +1 for the device ID)
+uint8_t dev_id = 132; //unique device ID
+
 void setup() {
   Serial.begin(9600);
+  pinMode(leafSupply, OUTPUT); // sets the digital port as output
   if (!rf95.init()) {
     Serial.println("init failed");
   }
@@ -67,15 +83,33 @@ void loop() {
 }
 
 void preparePayload() {
-  float wet = analogRead(A2); //Get analog measurement from leaf sensor (0-2V --> 0-409.2)
-  int wet_percent = map(wet, 0, 409.2, 0, 100); //Convert to Percentage
- /* Serial.println(wet); //debugging to check measurements
-  Serial.print("->");
-  Serial.print(wet_percent);
-  Serial.print("%"); */
-  Serial.println(wet_percent);
-  uint8_t wetness = wet_percent;
+  digitalWrite(leafSupply, HIGH); // sets the digital pin 2 on
+  delay(100);
+  
+  for (int i = 0; i < sensors; i++) {
+    leafMeasure[i] = analogRead(leafs[i]);
+    //finalMeasureToPayload[i] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage
+    payload[i+1] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage and add it in payload list
+    //debugging monitor
+    Serial.print("Port: A");
+    Serial.print(leafs[i]);
+    Serial.print(" == ");
+    Serial.print("Leaf Sensor #");
+    Serial.print(i + 1);
+    Serial.print(": ");
+    Serial.print(leafMeasure[i]);
+    Serial.print(" --> ");
+    Serial.print(payload[i+1]);
+    //Serial.print(finalMeasureToPayload[i]);
+    Serial.println("%");
+    
+    //payload[i+1] = finalMeasureToPayload[i]; // We go +1 because in payload[0] we will store the device ID
+    
+ }
+  //delay(100);
+  //digitalWrite(leafSupply, LOW);  // sets the digital pin off
+  //uint8_t wetness[i+1] = wet_percent[i];
   payload[0] = dev_id;
-  payload[1] = wetness;
-  payload[2] = 0;
+  //payload[1] = wetness;
+  //payload[2] = 0;
 }
