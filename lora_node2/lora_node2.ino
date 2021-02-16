@@ -16,9 +16,9 @@ int leaf2 = 2;
 int leaf3 = 3;
 //int leaf4 = 4;
 //int leaf5 = 5;
-const unsigned int sensors = 4; //number of leaf sensors
+const int sensors = 4; //number of leaf sensors
 int leafs[sensors] = {leaf0, leaf1, leaf2, leaf3}; //add the analogRead ports in the list, IF MORE SENSORS ARE ADDED, add more like {leaf0, leaf1,...}
-unsigned int leafMeasure[sensors]; //set measurements list length
+int leafMeasure[sensors]; //set measurements list length
 
 uint8_t payload[sensors+1]; //set payload list length (The length will be the number of sensors +1 for the device ID)
 uint8_t dev_id = 132; //unique device ID
@@ -84,12 +84,14 @@ void preparePayload() {
   payload[0] = dev_id;
   digitalWrite(leafSupply, HIGH); // sets the digital pin 2 on
   delay(100);
-  
+  Serial.println("=====PREPARING PAYLOAD=====");
+  Serial.print("Device ID: ");
+  Serial.println(payload[0]);
   for (int i = 0; i < sensors; i++) {
     leafMeasure[i] = analogRead(leafs[i]);
     //finalMeasureToPayload[i] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage
     payload[i+1] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage and add it in payload list
-    //debugging monitor
+//    //debugging monitor
     Serial.print("Port: A");
     Serial.print(leafs[i]);
     Serial.print(" == ");
@@ -102,4 +104,5 @@ void preparePayload() {
     Serial.println("%");
  }
   digitalWrite(leafSupply, LOW);  // sets the digital pin off
+  Serial.println("=======END OF PAYLOAD=======");
 }
