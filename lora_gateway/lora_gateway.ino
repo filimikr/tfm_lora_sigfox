@@ -2,12 +2,13 @@
 #include <RH_RF95.h>
 #include <Time.h>
 #include <TimeLib.h>
-uint8_t ulink_payload[7]; //ID-TEMP-HUM-H-M
+uint8_t ulink_payload[12]; //ID-TEMP-HUM-H-M
 uint8_t dlink_payload[2]; //ID-TXTime (2 BYTES)
 
 typedef struct {
   int dev_id = NULL;
-  uint8_t ulink_payload[5];
+  uint8_t ulink_payload[12];
+  int sensorsCount;
 }
 
 uplink_data;
@@ -33,7 +34,7 @@ int led = 8;
 
 void setup() {
   pinMode(led, OUTPUT);
-  Serial2.begin(9600); //Sigfox device serial communication
+  Serial1.begin(9600); //Sigfox device serial communication
   Serial.begin(9600);
   if (!rf95.init()) {
     Serial.println("init failed");
@@ -73,9 +74,9 @@ void loop() {
       digitalWrite(led, HIGH);
 
       Serial.print("got request: ");
-      Serial.println(buf[0]);
-      Serial.println(buf[1]);
-      Serial.println(buf[2]);
+//      Serial.println(buf[0]);
+//      Serial.println(buf[1]);
+//      Serial.println(buf[2]);
       uint8_t dev_id = buf[0];
       if (dev_id == 125) {
         flag125 = true;
@@ -104,7 +105,7 @@ void loop() {
       Serial.println("Sent a reply");
       digitalWrite(led, LOW);
       storeUplinkData(buf, dev_id); //store data and add timestamp
-      if (flag125 or flag132) { //We have data from both devices
+      if (flag125 and flag132) { //We have data from both devices
         sendSerialData(); //send serial data to MKRFOX1200 and recieve downlink info
         flag125 = false;
         flag132 = false;
@@ -124,6 +125,7 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
     updata[0].ulink_payload[2] = buf[2]; //humidity
     updata[0].ulink_payload[3] = hour(); //Hour (timestamp)
     updata[0].ulink_payload[4] = minute(); //Minutes (timestamp)
+    updata[0].sensorsCount = 2;
     Serial.println("Storing uplink data! DEV.125!");
   }
   if (buf[0] == 132) {
@@ -135,39 +137,60 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
     updata[1].ulink_payload[4] = buf[4]; //leaf wetness 4
     updata[1].ulink_payload[5] = hour(); //Hour (timestamp)
     updata[1].ulink_payload[6] = minute(); //Minutes (timestamp)
+    updata[1].sensorsCount = 4;
     Serial.println("Storing uplink data! DEV.132");
   }
 }
+
 void sendSerialData() {
-  int i = 0;
+//  int i = 0;
   Serial.println("Serial data sending to MKRFOX!");
-  for (i; i < MAX_DEV; i++) {
-    Serial2.write(updata[i].ulink_payload, sizeof(ulink_payload));
-    Serial.println(updata[i].ulink_payload[i]);
-//    Serial.println(updata[i].ulink_payload[1]);
-//    Serial.println(updata[i].ulink_payload[2]);
-//    Serial.println(updata[i].ulink_payload[3]);
-//    Serial.println(updata[i].ulink_payload[4]);
-  }
-  i = 0;
-  Serial.println("Waiting some time for Sigfox serial downlink!");
-
-  delay(45000);
-
-  if (Serial2.available()) { //RX downlink data
-    delay(100); //allows all serial sent to be received together
-    while (Serial2.available() && i < MAX_DEV) {
-      uint8_t dev_id = Serial2.read();
-      uint8_t tx_time = Serial2.read();
-      if (dev_id != 0) {
-        Serial.println("Receiving dlink serial data from MKRFOX!");
-        Serial.println(dev_id);
-        Serial.println(tx_time);
-        downdata[i].dev_id = dev_id; //ID
-        downdata[i].dlink_payload[0] = dev_id; //ID payload
-        downdata[i].dlink_payload[1] = tx_time; //TX freq time payload
-        i++;
-      }
+//  for (int i=0; i < MAX_DEV; i++) {
+//    Serial1.write(updata[i].ulink_payload, sizeof(ulink_payload));
+//    //Serial.println(updata[i].ulink_payload[i]);
+////    Serial.println(updata[i].ulink_payload[1]);
+////    Serial.println(updata[i].ulink_payload[2]);
+////    Serial.println(updata[i].ulink_payload[3]);
+////    Serial.println(updata[i].ulink_payload[4]);
+//  }
+  //debug
+//  Serial1.write(updata[0].ulink_payload[0]);
+//  Serial1.write(updata[0].ulink_payload[1]);
+//  Serial1.write(updata[0].ulink_payload[2]);
+//  Serial1.write(updata[0].ulink_payload[3]);
+//  Serial1.write(updata[0].ulink_payload[4]);
+//  Serial1.write(updata[0].ulink_payload[5]);
+//  Serial1.write(updata[1].ulink_payload[0]);
+//  Serial1.write(updata[1].ulink_payload[1]);
+//  Serial1.write(updata[1].ulink_payload[2]);
+//  Serial1.write(updata[1].ulink_payload[3]);
+//  Serial1.write(updata[1].ulink_payload[4]);
+//  Serial1.write(updata[1].ulink_payload[5]);
+//  Serial1.write(updata[1].ulink_payload[6]);
+  for (int i=0; i < MAX_DEV; i++) {
+    for (int j=0; j < updata[i].sensorsCount+3; j++) {
+      Serial1.write(updata[i].ulink_payload[j]);
     }
   }
+  
+  //Serial.println("Waiting some time for Sigfox serial downlink!");
+
+  //delay(45000);
+
+//  if (Serial1.available()) { //RX downlink data
+//    delay(100); //allows all serial sent to be received together
+//    while (Serial1.available() && i < MAX_DEV) {
+//      uint8_t dev_id = Serial1.read();
+//      uint8_t tx_time = Serial1.read();
+//      if (dev_id != 0) {
+//        Serial.println("Receiving dlink serial data from MKRFOX!");
+//        Serial.println(dev_id);
+//        Serial.println(tx_time);
+//        downdata[i].dev_id = dev_id; //ID
+//        downdata[i].dlink_payload[0] = dev_id; //ID payload
+//        downdata[i].dlink_payload[1] = tx_time; //TX freq time payload
+//        i++;
+//      }
+//    }
+//  }
 }
