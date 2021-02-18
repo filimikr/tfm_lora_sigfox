@@ -143,31 +143,12 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
 }
 
 void sendSerialData() {
-//  int i = 0;
   Serial.println("Serial data sending to MKRFOX!");
-//  for (int i=0; i < MAX_DEV; i++) {
-//    Serial1.write(updata[i].ulink_payload, sizeof(ulink_payload));
-//    //Serial.println(updata[i].ulink_payload[i]);
-////    Serial.println(updata[i].ulink_payload[1]);
-////    Serial.println(updata[i].ulink_payload[2]);
-////    Serial.println(updata[i].ulink_payload[3]);
-////    Serial.println(updata[i].ulink_payload[4]);
-//  }
-  //debug
-//  Serial1.write(updata[0].ulink_payload[0]);
-//  Serial1.write(updata[0].ulink_payload[1]);
-//  Serial1.write(updata[0].ulink_payload[2]);
-//  Serial1.write(updata[0].ulink_payload[3]);
-//  Serial1.write(updata[0].ulink_payload[4]);
-//  Serial1.write(updata[0].ulink_payload[5]);
-//  Serial1.write(updata[1].ulink_payload[0]);
-//  Serial1.write(updata[1].ulink_payload[1]);
-//  Serial1.write(updata[1].ulink_payload[2]);
-//  Serial1.write(updata[1].ulink_payload[3]);
-//  Serial1.write(updata[1].ulink_payload[4]);
-//  Serial1.write(updata[1].ulink_payload[5]);
-//  Serial1.write(updata[1].ulink_payload[6]);
-  for (int i=0; i < MAX_DEV; i++) {
+  
+  for (int i=0; i < MAX_DEV; i++) { //will run depending on how many nodes we have
+// will run depending on how long is the payload we received for each node
+// We have +3 because it's no. of sensors + 1.device ID + 2.HH + 3.MM
+// This will send each byte one by one to the sigfox module (and the sigfox module is also reading the bytes one by one)
     for (int j=0; j < updata[i].sensorsCount+3; j++) {
       Serial1.write(updata[i].ulink_payload[j]);
     }
