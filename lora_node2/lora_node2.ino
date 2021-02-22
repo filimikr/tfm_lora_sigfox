@@ -8,17 +8,17 @@ bool rx_ok;
 int tx_time = 10000; //TX time periodicity
 
 //Leaf sensors Setup
-int leafSupply = 4; //digital port 2 supply
+int leafSupply = 4; //digital port 4 supply
 //set analogRead ports for each sensor
 int leaf0 = 0; //First leaf will send output to port A0 and so on
-int leaf1 = 1; //uncomment if additional sensors are added
+int leaf1 = 1; 
 int leaf2 = 2;
 int leaf3 = 3;
-//int leaf4 = 4;
-//int leaf5 = 5;
+//int leaf4 = 4; //uncomment if additional sensors are added
+//int leaf5 = 5; //uncomment if additional sensors are added
 const int sensors = 4; //number of leaf sensors
-int leafs[sensors] = {leaf0, leaf1, leaf2, leaf3}; //add the analogRead ports in the list, IF MORE SENSORS ARE ADDED, add more like {leaf0, leaf1,...}
-int leafMeasure[sensors]; //set measurements list length
+int leafs[sensors] = {leaf0, leaf1, leaf2, leaf3}; //add the analogRead ports in the list, IF MORE SENSORS ARE ADDED, add more like {leaf2, leaf3, leaf4...}
+int leafMeasure[sensors]; //set measurements list length depending on the no of sensors we set before
 
 uint8_t payload[sensors+1]; //set payload list length (The length will be the number of sensors +1 for the device ID)
 uint8_t dev_id = 132; //unique device ID
@@ -82,7 +82,7 @@ void loop() {
 
 void preparePayload() {
   payload[0] = dev_id;
-  digitalWrite(leafSupply, HIGH); // sets the digital pin 2 on
+  digitalWrite(leafSupply, HIGH); // sets the digital pin 4 on
   delay(100);
   Serial.println("=====PREPARING PAYLOAD=====");
   Serial.print("Device ID: ");
@@ -91,7 +91,7 @@ void preparePayload() {
     leafMeasure[i] = analogRead(leafs[i]);
     //finalMeasureToPayload[i] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage
     payload[i+1] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage and add it in payload list
-//    //debugging monitor
+    //debugging monitor
     Serial.print("Port: A");
     Serial.print(leafs[i]);
     Serial.print(" == ");
