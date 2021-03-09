@@ -71,7 +71,11 @@ void preparePayload() {
   float temp, hum;
   SimpleDHT11 dht11(5);
   dht11.read2(&temp, &hum, NULL);
+  Serial.print("Temperature/RH: ");
   Serial.print(temp);
+  Serial.print("°C/");
+  Serial.print(hum);
+  Serial.println("%");
   uint8_t temperature = temp;
   uint8_t humidity = hum;
   payload[0] = dev_id;

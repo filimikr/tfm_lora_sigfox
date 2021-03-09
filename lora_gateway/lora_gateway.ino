@@ -147,7 +147,7 @@ void sendSerialData() {
   
   for (int i=0; i < MAX_DEV; i++) { //will run depending on how many nodes we have
 // will run depending on how long is the payload we received for each node
-// We have +3 because it's no. of sensors + 1.device ID + 2.HH + 3.MM
+// We have +3 because it's number of sensors + 1.device ID + 2.HH + 3.MM
 // This will send each byte one by one to the sigfox module (and the sigfox module is also reading the bytes one by one)
     for (int j=0; j < updata[i].sensorsCount+3; j++) {
       Serial1.write(updata[i].ulink_payload[j]);

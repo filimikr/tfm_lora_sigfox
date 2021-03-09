@@ -78,11 +78,11 @@ void loop() {
 }
 
 void send_data() {
-  SigFox.begin(); //Initi Sigfox module
+  SigFox.begin(); //Initialize Sigfox module
   delay(100);
   SigFox.debug();// Enable debug led and disable automatic deep sleep
   SigFox.status();// Delete pendent interruptions
-  SigFox.beginPacket();// We beging writing the msg
+  SigFox.beginPacket();// We begin writing the msg
   SigFox.write((uint8_t*)&msg, sizeof(msg));
   delay(5);
   //int ret = SigFox.endPacket(); //Buffer sending
