@@ -58,7 +58,17 @@ void loop() {
       String M = String(min1) + String(min2);
       finalm = M.toInt();
       //Serial.println(finalh);
-      setTime(finalh, finalm, 00, 05, 12, 2020);
+      setTime(finalh, finalm, 00, 16, 03, 2021);
+      clock_set = true;
+      Serial.println("----------------------------------------------------------- ");
+      Serial.println("Time successfully updated. Current time: ");
+      Serial.print(String(finalh) + ":" + String(finalm) + "h");
+    }
+    else if (Serial1.available()) {
+      Serial1.write(9999);
+      int finalh = Serial1.read();
+      int finalm = Serial1.read();
+      setTime(finalh, finalm, 00, 16, 03, 2021);
       clock_set = true;
       Serial.println("----------------------------------------------------------- ");
       Serial.println("Time successfully updated. Current time: ");
@@ -74,9 +84,9 @@ void loop() {
       digitalWrite(led, HIGH);
 
       Serial.print("got request: ");
-//      Serial.println(buf[0]);
-//      Serial.println(buf[1]);
-//      Serial.println(buf[2]);
+      //      Serial.println(buf[0]);
+      //      Serial.println(buf[1]);
+      //      Serial.println(buf[2]);
       uint8_t dev_id = buf[0];
       if (dev_id == 125) {
         flag125 = true;
@@ -110,7 +120,7 @@ void loop() {
         flag125 = false;
         flag132 = false;
       }
-    } 
+    }
     else {
       Serial.println("rx failed");
     }
@@ -144,34 +154,34 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
 
 void sendSerialData() {
   Serial.println("Serial data sending to MKRFOX!");
-  
-  for (int i=0; i < MAX_DEV; i++) { //will run depending on how many nodes we have
-// will run depending on how long is the payload we received for each node
-// We have +3 because it's number of sensors + 1.device ID + 2.HH + 3.MM
-// This will send each byte one by one to the sigfox module (and the sigfox module is also reading the bytes one by one)
-    for (int j=0; j < updata[i].sensorsCount+3; j++) {
+
+  for (int i = 0; i < MAX_DEV; i++) { //will run depending on how many nodes we have
+    // will run depending on how long is the payload we received for each node
+    // We have +3 because it's number of sensors + 1.device ID + 2.HH + 3.MM
+    // This will send each byte one by one to the sigfox module (and the sigfox module is also reading the bytes one by one)
+    for (int j = 0; j < updata[i].sensorsCount + 3; j++) {
       Serial1.write(updata[i].ulink_payload[j]);
     }
   }
-  
+
   //Serial.println("Waiting some time for Sigfox serial downlink!");
 
   //delay(45000);
 
-//  if (Serial1.available()) { //RX downlink data
-//    delay(100); //allows all serial sent to be received together
-//    while (Serial1.available() && i < MAX_DEV) {
-//      uint8_t dev_id = Serial1.read();
-//      uint8_t tx_time = Serial1.read();
-//      if (dev_id != 0) {
-//        Serial.println("Receiving dlink serial data from MKRFOX!");
-//        Serial.println(dev_id);
-//        Serial.println(tx_time);
-//        downdata[i].dev_id = dev_id; //ID
-//        downdata[i].dlink_payload[0] = dev_id; //ID payload
-//        downdata[i].dlink_payload[1] = tx_time; //TX freq time payload
-//        i++;
-//      }
-//    }
-//  }
+  //  if (Serial1.available()) { //RX downlink data
+  //    delay(100); //allows all serial sent to be received together
+  //    while (Serial1.available() && i < MAX_DEV) {
+  //      uint8_t dev_id = Serial1.read();
+  //      uint8_t tx_time = Serial1.read();
+  //      if (dev_id != 0) {
+  //        Serial.println("Receiving dlink serial data from MKRFOX!");
+  //        Serial.println(dev_id);
+  //        Serial.println(tx_time);
+  //        downdata[i].dev_id = dev_id; //ID
+  //        downdata[i].dlink_payload[0] = dev_id; //ID payload
+  //        downdata[i].dlink_payload[1] = tx_time; //TX freq time payload
+  //        i++;
+  //      }
+  //    }
+  //  }
 }

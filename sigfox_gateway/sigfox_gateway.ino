@@ -1,5 +1,9 @@
 #include <SigFox.h>
 #include <SPI.h>
+#include <RTCZero.h>
+// Create an rtc object
+RTCZero rtc;
+bool lora_clock = true;
 
 typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t id1;
@@ -7,7 +11,7 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t hum1;
   uint8_t hour1;
   uint8_t min1;
-  
+
   uint8_t id2;
   uint8_t wet1;
   uint8_t wet2;
@@ -22,7 +26,7 @@ SigfoxMessage msg;
 
 typedef struct {
   uint8_t dlink_payload [2];
-} 
+}
 
 dlink_data;
 dlink_data downdata[2];
@@ -35,11 +39,19 @@ int numtx = 0;
 void setup() {
   Serial.begin(9600); //Serial console
   Serial1.begin(9600); //Serial to LoRa GW
+
+  rtc.begin(); // initialize RTC
 }
 
 void loop() {
-  //Serial.println("Waiting for serial connection with Lora Gateway");
-  //delay(3000);
+  Serial.println("Waiting for serial connection with Lora Gateway");
+  delay(3000);
+  
+//  int clockNotification = Serial1.read();
+//  if (clockNotification = 9999) {
+//    getDownlinkTime();
+//  }
+
   if (Serial1.available()) { //uplink data from LoRa GW
     Serial.println("Receiving serial data from LoRa Gateway!");
     delay(100);
@@ -126,5 +138,33 @@ void Downlink() {
 
   if (numtx == 140) {
     numtx = 0; //reset
+  }
+}
+
+void getDownlinkTime() {
+  if (!SigFox.begin()) {
+    return;
+  }
+  SigFox.debug();
+  SigFox.beginPacket();
+  SigFox.write((uint8_t*)&msg, 12);
+  SigFox.endPacket(true); //We ask for DL data
+  Serial.println("Requesting DL from sigfox!");
+
+  if (SigFox.parsePacket()) {
+    while (SigFox.available()) {
+      uint8_t epochtime = SigFox.read(); //get DL message from Sigfox with time in epoch
+      Serial.println(epochtime);
+      rtc.setEpoch(epochtime + 3600); // epoch time GMT +1
+      int hh = rtc.getHours(); //hour
+      int mm = rtc.getMinutes(); //minute
+      Serial.print(hh);
+      Serial.print(":");
+      Serial.println(mm);
+      Serial1.write(hh); //We send it through Serial to LoRa GW
+      Serial1.write(mm);
+    }
+    Serial.println("Data sent to LoRa Gateway through Serial!");
+    lora_clock = true;
   }
 }
