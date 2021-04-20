@@ -43,29 +43,30 @@ void setup() {
 }
 
 void loop() {
-  while (!clock_set) {
-    Serial.println("Set the current time (HH:MM): ");
-    delay(5000);
-    if (Serial.available()) {
-      char hour1 = Serial.read();
-      char hour2 = Serial.read();
-      String H = String(hour1) + String(hour2);
-      finalh = H.toInt();
-      //Serial.println(finalh);
-      char min1 = Serial.read(); //":"
-      min1 = Serial.read();
-      char min2 = Serial.read();
-      String M = String(min1) + String(min2);
-      finalm = M.toInt();
-      //Serial.println(finalh);
-      setTime(finalh, finalm, 00, 05, 12, 2020);
-      clock_set = true;
-      Serial.println("----------------------------------------------------------- ");
-      Serial.println("Time successfully updated. Current time: ");
-      Serial.print(String(finalh) + ":" + String(finalm) + "h");
-    }
-  }
-
+//  while (!clock_set) {
+//    Serial.println("Set the current time (HH:MM): ");
+//    delay(5000);
+//    if (Serial.available()) {
+//      char hour1 = Serial.read();
+//      char hour2 = Serial.read();
+//      String H = String(hour1) + String(hour2);
+//      finalh = H.toInt();
+//      //Serial.println(finalh);
+//      char min1 = Serial.read(); //":"
+//      min1 = Serial.read();
+//      char min2 = Serial.read();
+//      String M = String(min1) + String(min2);
+//      finalm = M.toInt();
+//      //Serial.println(finalh);
+//      setTime(finalh, finalm, 00, 05, 12, 2020);
+//      clock_set = true;
+//      Serial.println("----------------------------------------------------------- ");
+//      Serial.println("Time successfully updated. Current time: ");
+//      Serial.print(String(finalh) + ":" + String(finalm) + "h");
+//    }
+//  }
+  Serial.println("waiting from lora nodes");
+  delay(5000);
   if (rf95.available()) {
     // Should be a message for us now
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -74,15 +75,20 @@ void loop() {
       digitalWrite(led, HIGH);
 
       Serial.print("got request: ");
-//      Serial.println(buf[0]);
-//      Serial.println(buf[1]);
-//      Serial.println(buf[2]);
       uint8_t dev_id = buf[0];
       if (dev_id == 125) {
         flag125 = true;
+        Serial.println(buf[0]); //Just for debugging
+        Serial.println(buf[1]);
+        Serial.println(buf[2]);
       }
       if (dev_id == 132) {
         flag132 = true;
+        Serial.println(buf[0]); //Just for debugging
+        Serial.println(buf[1]);
+        Serial.println(buf[2]);
+        Serial.println(buf[3]);
+        Serial.println(buf[4]);
       }
       //PREPARING THE REPLY TO THE DEVICE
       int i = 0;
@@ -110,7 +116,7 @@ void loop() {
         flag125 = false;
         flag132 = false;
       }
-    } 
+    }
     else {
       Serial.println("rx failed");
     }
@@ -123,9 +129,9 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
     updata[0].ulink_payload[0] = buf[0]; //dev ID
     updata[0].ulink_payload[1] = buf[1]; //temp
     updata[0].ulink_payload[2] = buf[2]; //humidity
-    updata[0].ulink_payload[3] = hour(); //Hour (timestamp)
-    updata[0].ulink_payload[4] = minute(); //Minutes (timestamp)
-    updata[0].sensorsCount = 2;
+    updata[0].ulink_payload[3] = 0; //Hour (timestamp)
+    updata[0].ulink_payload[4] = 0; //Minutes (timestamp)
+    updata[0].sensorsCount = 2; //We have one sensor but we're getting Temp and Humidity, so we consider it as 2 for the payload
     Serial.println("Storing uplink data! DEV.125!");
   }
   if (buf[0] == 132) {
@@ -135,8 +141,8 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
     updata[1].ulink_payload[2] = buf[2]; //leaf wetness 2
     updata[1].ulink_payload[3] = buf[3]; //leaf wetness 3
     updata[1].ulink_payload[4] = buf[4]; //leaf wetness 4
-    updata[1].ulink_payload[5] = hour(); //Hour (timestamp)
-    updata[1].ulink_payload[6] = minute(); //Minutes (timestamp)
+    updata[1].ulink_payload[5] = 0; //Hour (timestamp)
+    updata[1].ulink_payload[6] = 0; //Minutes (timestamp)
     updata[1].sensorsCount = 4;
     Serial.println("Storing uplink data! DEV.132");
   }
@@ -144,34 +150,35 @@ void storeUplinkData(uint8_t buf[RH_RF95_MAX_MESSAGE_LEN], uint8_t dev_id) {
 
 void sendSerialData() {
   Serial.println("Serial data sending to MKRFOX!");
-  
-  for (int i=0; i < MAX_DEV; i++) { //will run depending on how many nodes we have
-// will run depending on how long is the payload we received for each node
-// We have +3 because it's number of sensors + 1.device ID + 2.HH + 3.MM
-// This will send each byte one by one to the sigfox module (and the sigfox module is also reading the bytes one by one)
-    for (int j=0; j < updata[i].sensorsCount+3; j++) {
+
+  for (int i = 0; i < MAX_DEV; i++) { //will run depending on how many nodes we have
+    // will run depending on how long is the payload we received for each node
+    // We have +3 because it's number of sensors + 1.device ID + 2.HH + 3.MM
+    // This will send each byte one by one to the sigfox module (and the sigfox module is also reading the bytes one by one)
+    for (int j = 0; j < updata[i].sensorsCount + 3; j++) {
       Serial1.write(updata[i].ulink_payload[j]);
     }
   }
-  
-  //Serial.println("Waiting some time for Sigfox serial downlink!");
 
-  //delay(45000);
 
-//  if (Serial1.available()) { //RX downlink data
-//    delay(100); //allows all serial sent to be received together
-//    while (Serial1.available() && i < MAX_DEV) {
-//      uint8_t dev_id = Serial1.read();
-//      uint8_t tx_time = Serial1.read();
-//      if (dev_id != 0) {
-//        Serial.println("Receiving dlink serial data from MKRFOX!");
-//        Serial.println(dev_id);
-//        Serial.println(tx_time);
-//        downdata[i].dev_id = dev_id; //ID
-//        downdata[i].dlink_payload[0] = dev_id; //ID payload
-//        downdata[i].dlink_payload[1] = tx_time; //TX freq time payload
-//        i++;
+    Serial.println("Waiting some time for Sigfox serial downlink!");
+
+    //delay(45000);
+//
+//    if (Serial1.available()) { //RX downlink data
+//      delay(100); //allows all serial sent to be received together
+//      while (Serial1.available() && i < MAX_DEV) {
+//        uint8_t dev_id = Serial1.read();
+//        uint8_t tx_time = Serial1.read();
+//        if (dev_id != 0) {
+//          Serial.println("Receiving dlink serial data from MKRFOX!");
+//          Serial.println(dev_id);
+//          Serial.println(tx_time);
+//          downdata[i].dev_id = dev_id; //ID
+//          downdata[i].dlink_payload[0] = dev_id; //ID payload
+//          downdata[i].dlink_payload[1] = tx_time; //TX freq time payload
+//          i++;
+//        }
 //      }
 //    }
-//  }
-}
+  }

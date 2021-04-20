@@ -5,16 +5,16 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t id1;
   uint8_t temp1;
   uint8_t hum1;
-  uint8_t hour1;
-  uint8_t min1;
+  //uint8_t hour1;
+  //uint8_t min1;
   
   uint8_t id2;
   uint8_t wet1;
   uint8_t wet2;
   uint8_t wet3;
   uint8_t wet4;
-  uint8_t hour2;
-  uint8_t min2;
+  //uint8_t hour2;
+  //uint8_t min2;
 }
 
 SigfoxMessage; //Sigfox packet 12 BYTES
@@ -38,35 +38,35 @@ void setup() {
 }
 
 void loop() {
-  //Serial.println("Waiting for serial connection with Lora Gateway");
-  //delay(3000);
+  Serial.println("Waiting for serial connection with Lora Gateway");
+  delay(3000);
   if (Serial1.available()) { //uplink data from LoRa GW
     Serial.println("Receiving serial data from LoRa Gateway!");
     delay(100);
     msg.id1 = Serial1.read();
     msg.temp1 = Serial1.read();
     msg.hum1 = Serial1.read();
-    msg.hour1 = Serial1.read();
-    msg.min1 = Serial1.read();
+    //msg.hour1 = Serial1.read();
+    //msg.min1 = Serial1.read();
     msg.id2 = Serial1.read();
     msg.wet1 = Serial1.read();
     msg.wet2 = Serial1.read();
     msg.wet3 = Serial1.read();
     msg.wet4 = Serial1.read();
-    msg.hour2 = Serial1.read();
-    msg.min2 = Serial1.read();
+    //msg.hour2 = Serial1.read();
+    //msg.min2 = Serial1.read();
     Serial.println(msg.id1);
     Serial.println(msg.temp1);
     Serial.println(msg.hum1);
-    Serial.println(msg.hour1);
-    Serial.println(msg.min1);
+    //Serial.println(msg.hour1);
+    //Serial.println(msg.min1);
     Serial.println(msg.id2);
     Serial.println(msg.wet1);
     Serial.println(msg.wet2);
     Serial.println(msg.wet3);
     Serial.println(msg.wet4);
-    Serial.println(msg.hour2);
-    Serial.println(msg.min2);
+    //Serial.println(msg.hour2);
+    //Serial.println(msg.min2);
     delay(100);
     if (numtx == 35 || numtx == 70 || numtx == 105 || numtx == 138) {
       Downlink(); //We ask for Downlink data just 4 times per day
@@ -91,7 +91,7 @@ void send_data() {
 
   Serial.println("Data sent to Sigfox! (just uplink)");
   numtx++; //Increment number of TXs
-  Serial.println("Messages sent before reseting:");
+  Serial.println("Messages sent today:");
   Serial.println(numtx);
 
   if (numtx == 140) {

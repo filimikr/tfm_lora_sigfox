@@ -73,7 +73,7 @@ void loop() {
   }
 
   Serial.println("Lets Sleep...");
-  delay(240000); //4 mins
+  delay(60000); //4 mins
   /* Activate this when setting the low power idle mode
     for (tx_time; tx_time > 0; sleepCounter--){
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
@@ -89,8 +89,8 @@ void preparePayload() {
   Serial.println(payload[0]);
   for (int i = 0; i < sensors; i++) {
     leafMeasure[i] = analogRead(leafs[i]);
-    //finalMeasureToPayload[i] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage
-    payload[i+1] = map(leafMeasure[i], 0, 409, 0 , 100); //convert measure to percentage and add it in payload list
+    //finalMeasureToPayload[i] = map(leafMeasure[i], 0, 413, 0 , 100); //convert measure to percentage
+    payload[i+1] = map(leafMeasure[i], 0, 420, 0 , 100); //convert measure to percentage and add it in payload list
     //debugging monitor
     Serial.print("Port: A");
     Serial.print(leafs[i]);
