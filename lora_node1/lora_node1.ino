@@ -59,19 +59,22 @@ void loop() {
   }
 
   Serial.println("Lets Sleep...");
-  //delay(4 * 60 * 1000); //4mins
-  delay(240000);
+  delay(2* 60 * 1000); //2mins - adding this delay instead of low power mode, for testing
   /* Activate this when setting the low power idle mode
     for (tx_time; tx_time > 0; sleepCounter--){
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
     }*/
 }
-
+//preparing the payload to be sent to LoRa gateway
 void preparePayload() {
   float temp, hum;
   SimpleDHT11 dht11(5);
   dht11.read2(&temp, &hum, NULL);
+  Serial.print("Temperature/RH: ");
   Serial.print(temp);
+  Serial.print("°C/");
+  Serial.print(hum);
+  Serial.println("%");
   uint8_t temperature = temp;
   uint8_t humidity = hum;
   payload[0] = dev_id;

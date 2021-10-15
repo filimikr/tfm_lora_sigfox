@@ -7,10 +7,12 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t hum1;
   uint8_t hour1;
   uint8_t min1;
+  
   uint8_t id2;
-  uint8_t temp2;
-
-  uint8_t hum2;
+  uint8_t wet1;
+  uint8_t wet2;
+  uint8_t wet3;
+  uint8_t wet4;
   uint8_t hour2;
   uint8_t min2;
 }
@@ -25,9 +27,9 @@ typedef struct {
 dlink_data;
 dlink_data downdata[2];
 
-uint8_t ulink_payload[5]; //ID-TEMP-HUM-H-M
+uint8_t ulink_payload[12]; //ID-TEMP-HUM-H-M
 uint8_t dlink_payload[2]; //ID-TXTime (2 BYTES)
-int MAX_DEV = 2;
+//int MAX_DEV = 1;
 int numtx = 0;
 
 void setup() {
@@ -36,7 +38,8 @@ void setup() {
 }
 
 void loop() {
-  //Serial.println("Waiting for serial connection with Lora Gateway");
+  Serial.println("Waiting for serial connection with Lora Gateway");
+  delay(3000);
   if (Serial1.available()) { //uplink data from LoRa GW
     Serial.println("Receiving serial data from LoRa Gateway!");
     delay(100);
@@ -45,23 +48,26 @@ void loop() {
     msg.hum1 = Serial1.read();
     msg.hour1 = Serial1.read();
     msg.min1 = Serial1.read();
+    msg.id2 = Serial1.read();
+    msg.wet1 = Serial1.read();
+    msg.wet2 = Serial1.read();
+    msg.wet3 = Serial1.read();
+    msg.wet4 = Serial1.read();
+    msg.hour2 = Serial1.read();
+    msg.min2 = Serial1.read();
     Serial.println(msg.id1);
     Serial.println(msg.temp1);
     Serial.println(msg.hum1);
     Serial.println(msg.hour1);
     Serial.println(msg.min1);
-    delay(1000);
-    msg.id2 = Serial1.read();
-    msg.temp2 = Serial1.read();
-    msg.hum2 = Serial1.read();
-    msg.hour2 = Serial1.read();
-    msg.min2 = Serial1.read();
     Serial.println(msg.id2);
-    Serial.println(msg.temp2);
-    Serial.println(msg.hum2);
+    Serial.println(msg.wet1);
+    Serial.println(msg.wet2);
+    Serial.println(msg.wet3);
+    Serial.println(msg.wet4);
     Serial.println(msg.hour2);
     Serial.println(msg.min2);
-
+    delay(100);
     if (numtx == 35 || numtx == 70 || numtx == 105 || numtx == 138) {
       Downlink(); //We ask for Downlink data just 4 times per day
     }
@@ -72,20 +78,20 @@ void loop() {
 }
 
 void send_data() {
-  SigFox.begin(); //Initi Sigfox module
+  SigFox.begin(); //Initialize Sigfox module
   delay(100);
   SigFox.debug();// Enable debug led and disable automatic deep sleep
   SigFox.status();// Delete pendent interruptions
-  delay(1);
-  SigFox.beginPacket();// We beging wriring the msg
-  SigFox.write((uint8_t*)&msg, 12);
+  SigFox.beginPacket();// We begin writing the msg
+  SigFox.write((uint8_t*)&msg, sizeof(msg));
   delay(5);
-  int ret = SigFox.endPacket(); //Buffer sending
+  //int ret = SigFox.endPacket(); //Buffer sending
+  SigFox.endPacket(); //Buffer sending
   SigFox.end();
 
   Serial.println("Data sent to Sigfox! (just uplink)");
   numtx++; //Increment number of TXs
-  Serial.println("Messages sent before reseting:");
+  Serial.println("Messages sent today:");
   Serial.println(numtx);
 
   if (numtx == 140) {
