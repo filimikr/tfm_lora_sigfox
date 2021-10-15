@@ -17,8 +17,8 @@ int leaf3 = 3;
 //int leaf4 = 4; //uncomment if additional sensors are added
 //int leaf5 = 5; //uncomment if additional sensors are added
 const int sensors = 4; //number of leaf sensors
-int leafs[sensors] = {leaf0, leaf1, leaf2, leaf3}; //add the analogRead ports in the list, IF MORE SENSORS ARE ADDED, add more like {leaf2, leaf3, leaf4...}
-int leafMeasure[sensors]; //set measurements list length depending on the no of sensors we set before
+int leafs[sensors] = {leaf0, leaf1, leaf2, leaf3}; //add the analogRead ports in the list, IF MORE SENSORS ARE ADDED, add more like {leaf4, leaf5, leaf6...}
+int leafMeasure[sensors]; //set measurements list length depending on the number of sensors we set before
 
 uint8_t payload[sensors+1]; //set payload list length (The length will be the number of sensors +1 for the device ID)
 uint8_t dev_id = 132; //unique device ID
@@ -73,13 +73,14 @@ void loop() {
   }
 
   Serial.println("Lets Sleep...");
-  delay(60000); //4 mins
+  delay(600000); //10 mins - adding delay instead of low power mode, for testing
   /* Activate this when setting the low power idle mode
     for (tx_time; tx_time > 0; sleepCounter--){
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
     }*/
 }
 
+//preparing the payload to be sent to LoRa gateway
 void preparePayload() {
   payload[0] = dev_id;
   digitalWrite(leafSupply, HIGH); // sets the digital pin 4 on
@@ -89,8 +90,9 @@ void preparePayload() {
   Serial.println(payload[0]);
   for (int i = 0; i < sensors; i++) {
     leafMeasure[i] = analogRead(leafs[i]);
-    //finalMeasureToPayload[i] = map(leafMeasure[i], 0, 413, 0 , 100); //convert measure to percentage
-    payload[i+1] = map(leafMeasure[i], 0, 420, 0 , 100); //convert measure to percentage and add it in payload list
+    //convert measure to percentage and add it in payload list. 
+    //420 is considered as the highest digital value we can get when the leaf is fully wet (0-2V --> 0-420 digital values). Can be between 413-420.
+    payload[i+1] = map(leafMeasure[i], 0, 420, 0 , 100); 
     //debugging monitor
     Serial.print("Port: A");
     Serial.print(leafs[i]);

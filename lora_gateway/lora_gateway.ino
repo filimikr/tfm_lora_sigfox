@@ -22,7 +22,7 @@ dlink_data;
 uplink_data updata[2];
 dlink_data downdata[2];
 
-int MAX_DEV = 2;
+int MAX_DEV = 2; //number of node devices
 bool clock_set = false;
 int finalh;
 int finalm;
@@ -42,45 +42,24 @@ void setup() {
   rf95.setFrequency(868.0);
 }
 
-void loop() {
-//  while (!clock_set) {
-//    Serial.println("Set the current time (HH:MM): ");
-//    delay(5000);
-//    if (Serial.available()) {
-//      char hour1 = Serial.read();
-//      char hour2 = Serial.read();
-//      String H = String(hour1) + String(hour2);
-//      finalh = H.toInt();
-//      //Serial.println(finalh);
-//      char min1 = Serial.read(); //":"
-//      min1 = Serial.read();
-//      char min2 = Serial.read();
-//      String M = String(min1) + String(min2);
-//      finalm = M.toInt();
-//      //Serial.println(finalh);
-//      setTime(finalh, finalm, 00, 05, 12, 2020);
-//      clock_set = true;
-//      Serial.println("----------------------------------------------------------- ");
-//      Serial.println("Time successfully updated. Current time: ");
-//      Serial.print(String(finalh) + ":" + String(finalm) + "h");
-//    }
-//  }
-  Serial.println("waiting from lora nodes");
-  delay(5000);
-  if (rf95.available()) {
+void loop() { //
+  if (rf95.available()) { //checking if there's a message coming from the nodes
     // Should be a message for us now
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (rf95.recv(buf, &len)) {
       digitalWrite(led, HIGH);
 
-      Serial.print("got request: ");
+      Serial.println("got request: ");
       uint8_t dev_id = buf[0];
       if (dev_id == 125) {
         flag125 = true;
         Serial.println(buf[0]); //Just for debugging
         Serial.println(buf[1]);
         Serial.println(buf[2]);
+        Serial.print("RSSI for node 1: ");
+        Serial.print(rf95.lastRssi(), DEC);
+        Serial.println("dBm");
       }
       if (dev_id == 132) {
         flag132 = true;
@@ -89,7 +68,11 @@ void loop() {
         Serial.println(buf[2]);
         Serial.println(buf[3]);
         Serial.println(buf[4]);
+        Serial.print("RSSI for node 2: ");
+        Serial.print(rf95.lastRssi(), DEC);
+        Serial.println("dBm");
       }
+      //print signal strength
       //PREPARING THE REPLY TO THE DEVICE
       int i = 0;
       bool found = false;
@@ -111,7 +94,7 @@ void loop() {
       Serial.println("Sent a reply");
       digitalWrite(led, LOW);
       storeUplinkData(buf, dev_id); //store data and add timestamp
-      if (flag125 and flag132) { //We have data from both devices
+      if (flag125 or flag132) { //We have data from both devices
         sendSerialData(); //send serial data to MKRFOX1200 and recieve downlink info
         flag125 = false;
         flag132 = false;
@@ -163,8 +146,8 @@ void sendSerialData() {
 
     Serial.println("Waiting some time for Sigfox serial downlink!");
 
-    //delay(45000);
-//
+    //delay(45000); 
+////getting downlink message from sigfox device. Not needed anymore as the downlink message from sigfox backend has been removed. Leaving here just for future reference.
 //    if (Serial1.available()) { //RX downlink data
 //      delay(100); //allows all serial sent to be received together
 //      while (Serial1.available() && i < MAX_DEV) {
